@@ -15,12 +15,11 @@ SimCLR · BYOL · I-JEPA · DINOv3 · ByteTrack + occlusion-aware identity manag
 
 <br/>
 
-<img src="assets/tracking_demo.gif" alt="Tracking demo — four IoT boards crossing, IDs kept through occlusion" width="100%"/>
+<img src="PASTE_TRACKING_GIF_LINK_HERE" alt="Tracking demo — four IoT boards crossing, IDs kept through occlusion" width="100%"/>
 
 <sub><b>Live tracking output.</b> DINOv3-initialised YOLOv12s + occlusion-aware identity manager.
 Solid box = visible board · dashed box <code>ID n - PREDICT ONLY</code> = board hidden behind another,
-drawn at its predicted position. Every board leaves the crossing with the ID and name it entered with.
-Full-resolution clip: <a href="assets/tracking_demo.mp4"><code>assets/tracking_demo.mp4</code></a></sub>
+drawn at its predicted position. Every board leaves the crossing with the ID and name it entered with.</sub>
 
 </div>
 
@@ -109,7 +108,7 @@ course's SSL Detection Lab.
 
 ### Assignment A — which detector?
 
-<img src="assets/partA_comparison.png" alt="Part A detector comparison" width="100%"/>
+<img src="PASTE_PARTA_CHART_LINK_HERE" alt="Part A detector comparison" width="100%"/>
 
 | Detector | mAP50 | mAP50-95 | Precision | Recall | F1 | FPS (T4) |
 |---|---:|---:|---:|---:|---:|---:|
@@ -140,7 +139,7 @@ course's SSL Detection Lab.
 
 ### Assignment B — does SSL pretraining help with 20% of the labels?
 
-<img src="assets/ssl_results.png" alt="SSL backbone comparison" width="100%"/>
+<img src="PASTE_SSL_CHART_LINK_HERE" alt="SSL backbone comparison" width="100%"/>
 
 YOLOv12s · ρ = 0.20 · seed 42 · 200 fine-tune epochs · **test split**
 
@@ -628,17 +627,11 @@ Kept on purpose — every one of these changed the results.
 
 ## Repository layout
 
-All training ran on **Kaggle**. This repository holds the exported notebooks and the README
-assets; datasets, checkpoints and full outputs live in each notebook's **Kaggle Output** tab.
+All training ran on **Kaggle**. This repository holds the exported notebooks; datasets, checkpoints and full outputs live in each notebook's **Kaggle Output** tab.
 
 ```text
 ├── Assignment A/      NB-1 … NB-5 — EDA, YOLOv10s, YOLOv12s, YOLOv26s, RF-DETR-Nano
 ├── Assignment B/      partition, baselines, 4 × (pretrain + detect), tracking
-├── assets/
-│   ├── tracking_demo.gif       README demo (autoplays)
-│   ├── tracking_demo.mp4       full-resolution tracked clip
-│   ├── partA_comparison.png    Assignment A chart
-│   └── ssl_results.png         Assignment B chart
 ├── LICENSE            Apache-2.0
 └── README.md
 ```
@@ -696,3 +689,10 @@ Structure and workflow follow the course instructor's
 **[Demo](#iotkits-ssl-detection--tracking) · [Results](#results-at-a-glance) · [Datasets](#datasets) · [Assignment A](#assignment-a--detector-selection) · [Assignment B](#assignment-b--ssl-pretraining-and-tracking) · [Identity manager](#occlusion-aware-identity-manager)**
 
 </div>
+
+https://github.com/user-attachments/assets/a1e2c774-e390-4459-a9fa-5a7ca5687759
+
+<img width="900" height="506" alt="tracking_demo" src="https://github.com/user-attachments/assets/c6ca94bc-eb10-4349-99de-a43163c933ed" />
+<img width="1280" height="768" alt="ssl_results" src="https://github.com/user-attachments/assets/d3e1fc63-b344-4ada-b5e5-4b65931e493a" />
+<img width="1760" height="704" alt="partA_comparison" src="https://github.com/user-attachments/assets/06165fa0-8ed9-4d43-8b73-0c5b9281f7ed" />
+
