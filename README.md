@@ -2,7 +2,7 @@
 
 # IoTKITs SSL Detection & Tracking
 
-**Pretrain a YOLOv12s backbone without labels. Fine-tune it with 20% of the labels. Track IoT boards through occlusion.**
+**Pretrain a YOLOv12s backbone without labels · Fine-tune it with 20% of the labels · Track IoT boards through occlusion**
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c.svg)](https://pytorch.org/)
@@ -12,6 +12,15 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
 SimCLR · BYOL · I-JEPA · DINOv3 · ByteTrack + occlusion-aware identity manager
+
+<br/>
+
+<img src="assets/tracking_demo.gif" alt="Tracking demo — four IoT boards crossing, IDs kept through occlusion" width="100%"/>
+
+<sub><b>Live tracking output.</b> DINOv3-initialised YOLOv12s + occlusion-aware identity manager.
+Solid box = visible board · dashed box <code>ID n - PREDICT ONLY</code> = board hidden behind another,
+drawn at its predicted position. Every board leaves the crossing with the ID and name it entered with.
+Full-resolution clip: <a href="assets/tracking_demo.mp4"><code>assets/tracking_demo.mp4</code></a></sub>
 
 </div>
 
@@ -26,45 +35,24 @@ SimCLR · BYOL · I-JEPA · DINOv3 · ByteTrack + occlusion-aware identity manag
 > **2.** Click **Copy & Edit** →
 > **3.** Set **Accelerator → GPU T4**, turn **Internet on**, and run all cells.
 >
-> Then follow the [recommended run order](#recommended-run-order).
-
----
-
-## ▶ Tracking demo
-
-<!--
-  HOW TO ADD THE VIDEO:
-  1. On GitHub, open README.md → click the pencil (Edit).
-  2. Drag your .mp4 (under 100 MB) into the editor at this spot.
-  3. GitHub uploads it and inserts a line like:
-       https://github.com/user-attachments/assets/xxxxxxxx-xxxx-xxxx
-  4. Delete the placeholder line below and keep that link on its own line.
--->
-
-https://github.com/user-attachments/assets/REPLACE-WITH-YOUR-VIDEO-LINK
-
-*DINOv3-initialised YOLOv12s + occlusion-aware identity manager. Solid box = visible board.
-Dashed box `ID n - PREDICT ONLY` = board fully hidden behind another, drawn at its predicted
-position. Every board leaves the crossing with the same ID and name it entered with.*
+> Then follow the [recommended run order](#assignment-b--ssl-pretraining-and-tracking).
 
 ---
 
 ## Contents
 
-**Getting started**
+**Overview**
 - [What this project does](#what-this-project-does)
 - [Results at a glance](#results-at-a-glance)
-- [Dataset](#dataset)
+- [Datasets](#datasets)
 
 **Notebooks**
-- [Kaggle notebooks](#kaggle-notebooks)
 - [How to run a notebook on Kaggle](#how-to-run-a-notebook-on-kaggle)
-- [Recommended run order](#recommended-run-order)
-- [What each notebook does](#what-each-notebook-does)
+- [Assignment A — detector selection](#assignment-a--detector-selection)
+- [Assignment B — SSL pretraining and tracking](#assignment-b--ssl-pretraining-and-tracking)
 
 **Reference**
 - [SSL architectures](#ssl-architectures)
-- [Detector choice (Part A)](#detector-choice-part-a)
 - [`.yaml` vs `.pt` — what our experiment claims](#yaml-vs-pt--what-our-experiment-claims)
 
 **Guides**
@@ -87,56 +75,100 @@ position. Every board leaves the crossing with the same ID and name it entered w
 
 ## What this project does
 
-Labelling detection data is expensive. Unlabelled images are cheap. This project asks:
+Labelling detection data is expensive; unlabelled images are cheap. The project asks:
 
-> **With only 20% of the labels, does self-supervised pretraining on the other 80% give a better
-> detector than training from scratch — and does that detector track boards reliably in video?**
+> **With only 20% of the labels, does self-supervised pretraining on the remaining images give a
+> better detector than training from scratch — and does that detector track boards reliably in
+> video?**
 
 ```mermaid
 flowchart LR
-    A["Unlabelled pool<br/><i>~80% of IoTKITs, pixels only</i>"] --> B["SSL pretraining<br/><i>SimCLR · BYOL · I-JEPA · DINOv3</i>"]
+    A0["Assignment A<br/><i>4 detectors, full labels</i>"] -->|YOLOv12s wins| B
+    A["Unlabelled pool<br/><i>pixels only</i>"] --> B["SSL pretraining<br/><i>SimCLR · BYOL · I-JEPA · DINOv3</i>"]
     B --> C["Weight surgery<br/><i>backbone layers 0-8</i>"]
     C --> D["Fine-tune YOLOv12s<br/><i>ρ = 0.20 labels</i>"]
     D --> E["Evaluate<br/><i>P · R · mAP50 · mAP50-95</i>"]
-    E --> F["Pick best backbone"]
+    E --> F["Best backbone<br/><i>DINOv3</i>"]
     F --> G["Video tracking<br/><i>occlusion aware</i>"]
 ```
 
-Built for **CSE445 Computer Vision — Assignment 2** on Kaggle T4 runtimes, following the
-structure of the course's SSL Detection Lab.
+Built for **CSE445 Computer Vision** on Kaggle T4 runtimes, following the structure of the
+course's SSL Detection Lab.
 
 **Three things this project is careful about:**
 
 | | |
 |---|---|
-| 🔍 **No hidden label use** | SSL pretraining reads pool images only. Test and validation images are checked to be absent from the pool in every notebook (`PASS` × 5). |
-| ⚖️ **Fair comparison** | Every SSL method uses the same architecture, label subset, seed, image size, batch and epochs. Random-init and COCO baselines are trained **once** and reused. |
-| 📏 **Honest metric boundaries** | The video has no ground-truth identities, so tracking is reported with proxy metrics and manual inspection — never as MOTA/IDF1. |
+| 🔍 **No hidden label use** | SSL pretraining reads pool images only. Validation and test images are verified absent from the pool in every notebook (5 × `PASS`). |
+| ⚖️ **Fair comparison** | Every SSL method uses the same architecture, label subset, seed, image size, batch and epochs. Random-init and COCO baselines are trained **once** and reused by every notebook. |
+| 📏 **Honest metric boundaries** | The tracking video has no ground-truth identities, so tracking is reported with proxy metrics and manual inspection — never as MOTA or IDF1. |
 
 ---
 
 ## Results at a glance
 
+### Assignment A — which detector?
+
+<img src="assets/partA_comparison.png" alt="Part A detector comparison" width="100%"/>
+
+| Detector | mAP50 | mAP50-95 | Precision | Recall | F1 | FPS (T4) |
+|---|---:|---:|---:|---:|---:|---:|
+| YOLOv10s | 0.947 | 0.917 | 0.965 | 0.950 | 0.957 | **79.9** |
+| **YOLOv12s** ✅ | **0.980** | **0.946** | **0.976** | **0.981** | **0.978** | 59.5 |
+| YOLOv26s | 0.933 | 0.904 | 0.946 | 0.936 | 0.941 | 75.6 |
+| RF-DETR-Nano | 0.851 | 0.829 | 0.656 | 0.911 | 0.745 | 35.4 |
+
+<details>
+<summary>Error analysis (test split)</summary>
+
+| Detector | False negatives | False positives | Misclassified | Localization near-miss |
+|---|---:|---:|---:|---:|
+| YOLOv10s | 6 | 9 | 8 | 24 |
+| **YOLOv12s** | **2** | 14 | **5** | **1** |
+| YOLOv26s | 9 | 27 | 12 | 15 |
+| RF-DETR-Nano | 4 | 179 | 50 | 0 |
+
+- **YOLOv12s** had the fewest misses, fewest misclassifications and almost no localization errors.
+- **RF-DETR-Nano** is NMS-free: several queries fire on one board with different look-alike
+  classes, so recall stays high while precision collapses.
+- Most confusions across all models are inside look-alike families — Pi Zero / Zero-W / Zero-WH /
+  Zero-2-W and Arduino Nano / Micro.
+
+</details>
+
+**YOLOv12s was selected** — highest mAP50-95 and F1, at 59.5 FPS (still real-time).
+
+### Assignment B — does SSL pretraining help with 20% of the labels?
+
+<img src="assets/ssl_results.png" alt="SSL backbone comparison" width="100%"/>
+
 YOLOv12s · ρ = 0.20 · seed 42 · 200 fine-tune epochs · **test split**
 
-| Initialisation | mAP50-95 | Δ vs random |
-|---|---:|---:|
-| COCO-pretrained *(upper reference)* | **0.896** | +0.170 |
-| 🥇 **DINOv3** | **0.743** | +0.017 |
-| SimCLR | 0.741 | +0.015 |
-| I-JEPA | 0.733 | +0.007 |
-| Random init *(lower reference)* | 0.726 | — |
-| BYOL | 0.692 | −0.034 |
+| Initialisation | Role | mAP50-95 | Δ vs random |
+|---|---|---:|---:|
+| COCO-pretrained | Supervised upper reference | 0.896 | +0.170 |
+| 🥇 **DINOv3** | SSL (released weights + domain adaptation) | **0.743** | **+0.017** |
+| SimCLR | SSL from scratch | 0.741 | +0.015 |
+| I-JEPA | SSL from scratch | 0.733 | +0.007 |
+| Random init | Lower reference | 0.726 | — |
+| BYOL | SSL from scratch | 0.692 | −0.034 |
 
-```mermaid
-xychart-beta
-    title "Test mAP50-95 (ρ = 0.20)"
-    x-axis ["COCO", "DINOv3", "SimCLR", "I-JEPA", "Random", "BYOL"]
-    y-axis "mAP50-95" 0.6 --> 0.95
-    bar [0.896, 0.743, 0.741, 0.733, 0.726, 0.692]
-```
+> **Why is COCO in the results?** The assignment requires two baselines run under the exact same
+> fine-tuning settings: **random init** (the floor — "no pretraining at all") and
+> **COCO-pretrained** (the ceiling — "pretraining *with* millions of labels"). An SSL number only
+> means something between those two lines: random init tells you whether SSL helped at all, COCO
+> tells you how much of the gap to supervised pretraining it closed. Here SSL closed about
+> **10%** of that gap (+0.017 of +0.170). COCO is drawn as a reference line, not a competing bar,
+> because it is not an SSL method.
 
-**Tracking (DINOv3 detector, 4 boards, crossing in two rows):**
+> Three of four SSL methods beat random init, but the gaps (~0.01–0.02) are within single-seed
+> noise. The honest reading: SSL on a few thousand unlabelled images helps a little; COCO-scale
+> supervised pretraining still helps far more. BYOL's embeddings clustered by background and
+> lighting rather than board type, which predicted its below-random result.
+
+### Tracking
+
+DINOv3 detector · 4 boards crossing in two rows · one board fully hidden at a time
 
 | Board | ID before crossing | ID after crossing | Name kept |
 |---|:---:|:---:|:---:|
@@ -145,37 +177,70 @@ xychart-beta
 | Raspberry-Pi-Zero-WH | 3 | **3** | ✅ |
 | Arduino Uno (Black) | 4 | **4** | ✅ |
 
-> Three of four SSL methods beat random init, but the gaps (~0.01–0.02) are within single-seed
-> noise. The honest reading: SSL on ~2.5k unlabelled images helps a little; COCO-scale
-> supervised pretraining still helps far more.
-
 ---
 
-## Dataset
+## Datasets
 
-**IoTKITs** — RGB photographs of IoT development boards with bounding boxes.
-Source: [Mendeley Data · x5thzmkxhy/1](https://data.mendeley.com/datasets/x5thzmkxhy/1)
+### 1 · IoTKITs — main dataset
 
 | | |
 |---|---|
+| Source | [Mendeley Data · x5thzmkxhy/1](https://data.mendeley.com/datasets/x5thzmkxhy/1) |
+| Content | RGB photographs of IoT development boards with bounding boxes |
 | Format | `.jpg` / `.jpeg`, converted to YOLO labels |
-| Classes | Raspberry Pi family, Arduino family, ESP32, STM32, Jetson, TelosB, … |
-| What makes it hard | Near-identical classes: Pi Zero / Zero-W / Zero-WH / Zero-2-W, Arduino Nano / Micro, Due / Mega |
-| Video | None in the dataset — see [5 · Track a video](#5--track-a-video) |
+| Classes | Arduino family (Due, Uno, Mega, Nano, Micro, ProMini, Leonardo, Zero, shields), Raspberry Pi family (1 / 2 / 3 / 4 / 5 / Zero / Zero-W / Zero-WH / Zero-2-W), ESP32, ESP8266, Wemos, STM32, Jetson Nano / TX2, TelosB |
+| What makes it hard | Near-identical classes that differ only in small print, an antenna or a header row |
+
+### 2 · Partitioned splits — derived from IoTKITs
+
+Produced by [NB-0 Partition](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-0-partition) and attached as a Kaggle
+input to every Assignment B notebook.
+
+```text
+ssl_pool_images/      unlabelled pool used for SSL pretraining (labels discarded)
+yolo_rho20/
+├── images/train      ρ = 0.20 labelled subset, drawn from inside the pool
+├── images/val        validation  (never in the pool)
+├── images/test       test holdout (never in the pool)
+└── data.yaml
+```
+
+### 3 · IoTKITs tracking video — built for this project
+
+IoTKITs contains **no video**, so we built one.
+
+| | |
+|---|---|
+| File | `IoTKITs.mp4` |
+| How it was made | Composited in Canva from **real IoTKITs photographs taken from the val/test splits** — real camera pixels, not AI-generated |
+| Resolution / FPS | 1920 × 1080 · 30 fps |
+| Length | 24.2 s (727 frames); the first 20 s (600 frames) are tracked |
+| Scene | 4 boards in two rows on a dark grid, sliding left ↔ right so that one board passes fully behind another |
+| Ground truth | None — tracking is evaluated with proxy metrics |
+| Kaggle | Published as a Kaggle dataset and attached to [NB-5 Tracking](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-5-tracking) |
+
+<details>
+<summary>Why a composited video, and how it was designed</summary>
+
+- **AI-generated video failed first.** An AI-generated clip gave 20–40% detection confidence and
+  130+ track IDs for 10 boards — its rendering style was a domain shift from the studio
+  photographs the detector learned from. Real dataset pixels raised confidence to 80–95%.
+- **Board size matters.** At ~250 px width the details that separate look-alike classes vanished;
+  ~350 px at 1920 width keeps them.
+- **Controlled occlusion.** Two boards overlap at a time. Stacking three or four tests clutter,
+  not occlusion.
+- **Test-split images only**, so the detector is never tracking images it was trained on.
+
+</details>
 
 ---
 
-## Kaggle notebooks
-
-Every notebook is a **Kaggle notebook** by `mrpaul0007`, mirrored in this repository under
-[`Assignment A/`](Assignment%20A/) and [`Assignment B/`](Assignment%20B/).
-
-### How to run a notebook on Kaggle
+## How to run a notebook on Kaggle
 
 1. Open the Kaggle link and click **Copy & Edit** (sign-in required).
 2. Right sidebar → **Session options → Accelerator → GPU T4**.
 3. Turn **Internet on** (needed for `pip install ultralytics` and YOLO configs).
-4. **Add Input** → attach the notebooks listed in the *Needs* column below.
+4. **Add Input** → attach everything listed in the *Needs* column.
 5. **Restart & Run All**.
 
 > **Run pretraining before its detect partner.** A detect notebook reads the `*_backbone.pt`
@@ -184,45 +249,51 @@ Every notebook is a **Kaggle notebook** by `mrpaul0007`, mirrored in this reposi
 > **Edited a config value? Use Restart & Run All.** A quick save keeps the *old* outputs on
 > screen, which looks like your change did nothing.
 
-### Recommended run order
+---
 
-Notebooks 1–2, 3–4, 5–6 and 7–8 are **pretrain → detect pairs**. Notebook 9 needs all four detect
-notebooks.
+## Assignment A — detector selection
 
-| # | Notebook | Needs | Run on Kaggle |
+Full-label training of four detectors on the same leakage-safe split; the winner becomes the
+Part B architecture. Local copies: [`Assignment A/`](Assignment%20A/).
+
+| # | Notebook | What it does | Run on Kaggle |
 |---:|---|---|---|
-| 0a | **Partition** — SSL pool / ρ=0.20 / val / test, leakage checks | IoTKITs | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-0-partition) |
-| 0b | **Baselines** — random-init and COCO-pretrained YOLOv12s | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-0-baseline) |
-| 1 | **SimCLR pretraining** — NT-Xent, t-SNE, nearest neighbours | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-1-simclr-pretrain) |
-| 2 | **SimCLR → YOLOv12s** — surgery, fine-tune, evaluate | 0a, 0b, 1 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-1-simclr-detect) |
-| 3 | **BYOL pretraining** — online / EMA target, AMP | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-2-byol-pretrain) |
-| 4 | **BYOL → YOLOv12s** | 0a, 0b, 3 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-2-byol-detect) |
-| 5 | **I-JEPA pretraining** — ViT masked-latent prediction + CNN distillation | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-3-ijepa-pretrain) |
-| 6 | **I-JEPA → YOLOv12s** | 0a, 0b, 5 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-3-ijepa-detect) |
-| 7 | **DINOv3 pretraining** — domain-adaptive multi-crop + CNN distillation | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-3-dinov3-pretrain) |
-| 8 | **DINOv3 → YOLOv12s** | 0a, 0b, 7 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-4-dinov3-detect) |
-| 9 | **Tracking** — re-score all four, export winner, track video | 0a, 2, 4, 6, 8, video | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-5-tracking) |
+| 1 | **NB-1 · EDA + split** | Class distribution, image statistics, leakage-safe train / val / test split | [Open](https://www.kaggle.com/mrpaul0007/code) |
+| 2 | **NB-2 · YOLOv10s** | Train, evaluate, per-example error analysis | [Open](https://www.kaggle.com/code/mrpaul0007/nb-2-yolov10) |
+| 3 | **NB-3 · YOLOv12s** ✅ | Train, evaluate, error analysis — **selected detector** | [Open](https://www.kaggle.com/code/mrpaul0007/nb-3-yolov12) |
+| 4 | **NB-4 · YOLOv26s** | Train, evaluate, error analysis, 3-way YOLO comparison | [Open](https://www.kaggle.com/code/mrpaul0007/nb-4-yolov26) |
+| 5 | **NB-5 · RF-DETR-Nano** | Transformer detector, error analysis, final 4-way comparison | [Open](https://www.kaggle.com/code/mrpaul0007/nb-5-rf-detr) |
+
+All YOLO notebooks use `SEED = 42`, `LRF = 0.01`, `COS_LR = False`. Each ends with a
+per-example error analysis (false negatives, false positives, misclassifications, localization
+near-misses) and a failure-pattern summary compared against the earlier models.
+
+---
+
+## Assignment B — SSL pretraining and tracking
+
+Local copies: [`Assignment B/`](Assignment%20B/). Notebooks 1–2, 3–4, 5–6 and 7–8 are
+**pretrain → detect pairs**; notebook 9 needs all four detect notebooks.
+
+| # | Notebook | What it does | Needs | Run on Kaggle |
+|---:|---|---|---|---|
+| 0a | **Partition** | SSL pool / ρ = 0.20 / val / test, 5 leakage checks | IoTKITs | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-0-partition) |
+| 0b | **Baselines** | Random-init and COCO-pretrained YOLOv12s, trained once | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-0-baseline) |
+| 1 | **SimCLR pretraining** | NT-Xent, two-view demo, t-SNE, nearest neighbours | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-1-simclr-pretrain) |
+| 2 | **SimCLR → YOLOv12s** | Weight surgery, fine-tune, evaluate | 0a · 0b · 1 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-1-simclr-detect) |
+| 3 | **BYOL pretraining** | Online / EMA target, AMP | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-2-byol-pretrain) |
+| 4 | **BYOL → YOLOv12s** | Weight surgery, fine-tune, evaluate | 0a · 0b · 3 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-2-byol-detect) |
+| 5 | **I-JEPA pretraining** | ViT masked-latent prediction + CNN distillation | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-3-ijepa-pretrain) |
+| 6 | **I-JEPA → YOLOv12s** | Weight surgery, fine-tune, evaluate | 0a · 0b · 5 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-3-ijepa-detect) |
+| 7 | **DINOv3 pretraining** | Domain-adaptive multi-crop + CNN distillation | 0a | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-3-dinov3-pretrain) |
+| 8 | **DINOv3 → YOLOv12s** | Weight surgery, fine-tune, evaluate | 0a · 0b · 7 | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-4-dinov3-detect) |
+| 9 | **Tracking** | Re-score all four, export winner, detect + track the video | 0a · 2 · 4 · 6 · 8 · video | [Open](https://www.kaggle.com/code/mrpaul0007/self-supervised-learning-nb-5-tracking) |
 
 <details>
-<summary>Approximate T4 runtime</summary>
+<summary>Shared notebook layout</summary>
 
-| Notebook | Time |
-|---|---|
-| SimCLR / BYOL pretraining (200 epochs) | ~3–4 h |
-| I-JEPA pretraining (ViT 200 epochs + distillation 200 epochs) | ~6 h |
-| DINOv3 pretraining (200 epochs + distillation 200 epochs) | ~6.3 h |
-| Each detect notebook (200 epochs) | ~3–4 h |
-| Tracking (20 s clip at 1920 px) | ~15–25 min |
-
-</details>
-
-### What each notebook does
-
-<details>
-<summary>Expand notebook-by-notebook detail</summary>
-
-All pretrain notebooks share one cell layout, and all detect notebooks share another, so the
-four methods are directly comparable.
+All pretrain notebooks share one cell layout and all detect notebooks share another, so the four
+methods read as one consistent study.
 
 ```text
 Pretrain:  Config → Subset verification → Model + loss → Augmentation / masking + dataset
@@ -234,18 +305,15 @@ Detect:    Config → Data YAML → Subset verification → Weight surgery → F
            → Qualitative predictions → Save results CSV
 ```
 
-- **Partition** builds the SSL pool, the ρ = 0.20 labelled subset, validation and test splits
-  with seed 42, and asserts five disjointness checks.
-- **Baselines** fine-tunes YOLOv12s from `yolo12s.yaml` (random) and `yolo12s.pt` (COCO) once;
-  every detect notebook reuses `base_random/` and `base_coco/`.
-- **SimCLR / BYOL pretraining** train the YOLOv12s backbone directly and save a flat
-  `state_dict` that drops into the detector.
-- **I-JEPA / DINOv3 pretraining** train a ViT, then distil its features into a fresh YOLOv12s
-  backbone (cosine + variance + covariance loss) because the detector needs a CNN.
-- **Detect notebooks** transplant the backbone, fine-tune, report P / R / mAP50 / mAP50-95 on val
-  and test, and save `<method>_result.csv`.
-- **Tracking** re-scores all four checkpoints at their training resolution, exports the winner,
-  and runs detection + tracking on the video.
+</details>
+
+<details>
+<summary>Measured T4 runtime</summary>
+
+| Notebook | Time |
+|---|---|
+| I-JEPA pretraining (ViT 200 epochs ≈ 318 min + distillation 200 epochs ≈ 38 min) | ~6 h |
+| DINOv3 pretraining (200 epochs ≈ 335 min + distillation 200 epochs ≈ 42 min) | ~6.3 h |
 
 </details>
 
@@ -263,17 +331,6 @@ Detect:    Config → Data YAML → Subset verification → Weight surgery → F
 > The assignment allows **only DINOv3** to start from released pretrained weights
 > (domain-adaptive continuation). SimCLR, BYOL and I-JEPA run their objective from random
 > initialisation.
-
-### Detector choice (Part A)
-
-Part A trained detectors on **full labels** to choose the Part B architecture.
-
-| Detector | Outcome |
-|---|---|
-| YOLOv10s | Strong; F1 in the YOLO range (0.94–0.98) |
-| **YOLOv12s** | **Selected** for Part B |
-| YOLOv26s | Strong; F1 in the YOLO range (0.94–0.98) |
-| RF-DETR-Nano | F1 0.745 — high recall (0.91) but low precision (0.66): NMS-free queries fire duplicate boxes on look-alike classes |
 
 ### `.yaml` vs `.pt` — what our experiment claims
 
@@ -416,37 +473,14 @@ print(r.box.mp, r.box.mr, r.box.map50, r.box.map)
 
 ## 5 · Track a video
 
-### The test video
-
-IoTKITs has **no video**, so the clip was composited in Canva from **real dataset photographs**
-(test/val images) — real pixels, not AI-generated.
-
-| | |
-|---|---|
-| Resolution / FPS | 1920 × 1080 · 30 fps |
-| Length used | 20 s (600 frames) |
-| Content | 4 boards in two rows, crossing left ↔ right, one board fully passing behind another |
-| Ground truth | None → proxy metrics |
-
-> **Why not an AI-generated clip?** A first attempt with an AI video gave 20–40% confidence and
-> 130+ track IDs for 10 boards: the rendering style was a domain shift from the studio photos
-> the detector learned from. Real dataset pixels raised confidence to 80–95%.
-
-<details>
-<summary>Video design lessons</summary>
-
-- Boards need to be large (~350 px at 1920 width). At ~250 px the details that separate look-alike
-  classes disappear.
-- Give every board its own speed — identical speeds keep boards clustered.
-- Overlap two boards at a time. Stacking three or four tests clutter, not occlusion.
-
-</details>
+The video is described under [Datasets → 3](#3--iotkits-tracking-video--built-for-this-project).
 
 ### Tracking settings
 
 | Setting | Value | Why |
 |---|---|---|
-| `imgsz` | 1920 | Native video width; keeps small details |
+| Checkpoint re-scoring | `imgsz=640`, `iou=0.70` | Must match how the checkpoints were trained and evaluated |
+| Video `imgsz` | 1920 | Native video width; keeps small details |
 | `conf` / `iou` | 0.30 / 0.45 | Video detection thresholds |
 | `agnostic_nms` | `True` | One box per board even when two similar classes fire |
 | `tracker` | `bytetrack.yaml` | Raw IDs are logged; final IDs come from the identity manager |
@@ -458,6 +492,7 @@ IoTKITs has **no video**, so the clip was composited in Canva from **real datase
 group-k_partB_tracked_h264.mp4   annotated video
 tracks.csv                       frame, track_id, box, conf, class, tracker_raw_id
 tracks_mot.txt                   MOT-format tracks
+ssl_ranking_rho20.csv            all four SSL backbones re-scored on test
 proxy_metrics.json               unique IDs, track length, fragmentation, FPS
 video_doc.json                   source, trim, resolution, frame rate
 ```
@@ -593,18 +628,23 @@ Kept on purpose — every one of these changed the results.
 
 ## Repository layout
 
-All training ran on **Kaggle**. This repository holds the exported notebooks; datasets,
-checkpoints and videos live in each notebook's **Kaggle Output** tab.
+All training ran on **Kaggle**. This repository holds the exported notebooks and the README
+assets; datasets, checkpoints and full outputs live in each notebook's **Kaggle Output** tab.
 
 ```text
-├── Assignment A/   Part A — YOLOv10s · YOLOv12s · YOLOv26s · RF-DETR-Nano, error analysis
-├── Assignment B/   Part B — partition, baselines, 4 × (pretrain + detect), tracking
-├── LICENSE         Apache-2.0
+├── Assignment A/      NB-1 … NB-5 — EDA, YOLOv10s, YOLOv12s, YOLOv26s, RF-DETR-Nano
+├── Assignment B/      partition, baselines, 4 × (pretrain + detect), tracking
+├── assets/
+│   ├── tracking_demo.gif       README demo (autoplays)
+│   ├── tracking_demo.mp4       full-resolution tracked clip
+│   ├── partA_comparison.png    Assignment A chart
+│   └── ssl_results.png         Assignment B chart
+├── LICENSE            Apache-2.0
 └── README.md
 ```
 
 <details>
-<summary>Where each output lives</summary>
+<summary>Where each Kaggle output lives</summary>
 
 | Output | Produced by |
 |---|---|
@@ -635,7 +675,8 @@ attach its inputs → **Run All**.
 
 ## License and acknowledgements
 
-The notebooks in this repository are **Apache-2.0**. Dependencies and weights keep their own terms.
+The notebooks in this repository are released under **Apache-2.0** — see [`LICENSE`](LICENSE).
+Dependencies, weights and data keep their own terms.
 
 | Component | Terms |
 |---|---|
@@ -643,13 +684,15 @@ The notebooks in this repository are **Apache-2.0**. Dependencies and weights ke
 | **DINOv3** | Meta's [DINOv3 License](https://github.com/facebookresearch/dinov3/blob/main/LICENSE.md) |
 | **IoTKITs** | Terms on the [Mendeley Data page](https://data.mendeley.com/datasets/x5thzmkxhy/1) |
 
-- SimCLR — Chen et al., 2020 · BYOL — Grill et al., 2020 · I-JEPA — Assran et al., 2023 · DINOv3 — Meta AI
-- Course instructor's [SSL Detection Lab](https://github.com/rifat963/ssl-detection-lab) — structure and workflow reference
+**References** — SimCLR (Chen et al., 2020) · BYOL (Grill et al., 2020) · I-JEPA (Assran et al.,
+2023) · DINOv3 (Meta AI) · YOLO12 and ByteTrack via Ultralytics · RF-DETR (Roboflow).
+Structure and workflow follow the course instructor's
+[SSL Detection Lab](https://github.com/rifat963/ssl-detection-lab).
 
 <div align="center">
 
 ---
 
-**[Tracking demo](#-tracking-demo) · [Kaggle notebooks](#kaggle-notebooks) · [Results](#results-at-a-glance) · [Identity manager](#occlusion-aware-identity-manager)**
+**[Demo](#iotkits-ssl-detection--tracking) · [Results](#results-at-a-glance) · [Datasets](#datasets) · [Assignment A](#assignment-a--detector-selection) · [Assignment B](#assignment-b--ssl-pretraining-and-tracking) · [Identity manager](#occlusion-aware-identity-manager)**
 
 </div>
