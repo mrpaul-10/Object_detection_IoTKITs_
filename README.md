@@ -100,7 +100,7 @@ flowchart LR
     C -->|YOLOv12s| D
     B -->|valid + test images| E[IoTKITs Detection Video]
     E --> F[Tracking]
-    D -->|best detector| F
+    D -->|DINOv3| F
 ```
 
 ### 1.1 IoTKITs (original dataset)
