@@ -52,7 +52,7 @@ flowchart LR
     B --> C[Backbone transfer<br/>layers 0-8]
     C --> D[Fine-tuning<br/>20% labels]
     D --> E[Evaluation<br/>test split]
-    E -->|best backbone| F[Video tracking]
+    E -->|DINOv3| F[Video tracking]
 ```
 
 ### Key results
@@ -92,12 +92,15 @@ One public dataset was used, and **two new datasets were created** from it.
 | 3 | **IoTKITs Detection Video** | **Created** | Validation and test images of dataset 2 | Tracking notebook | [Kaggle](https://www.kaggle.com/datasets/Mrpaul0007/iotkits-detection-video) |
 
 ```mermaid
+%%{init: {"flowchart": {"useMaxWidth": false}}}%%
 flowchart LR
-    A[IoTKITs<br/>Mendeley] --> B[IoTKITs YOLO split<br/>train / val / test]
-    B -->|full labels| C[Assignment A<br/>detector selection]
-    B -->|train → SSL pool<br/>20% keeps labels| D[Assignment B<br/>SSL pretraining + fine-tuning]
-    B -->|val + test images| E[IoTKITs Detection Video]
+    A[IoTKITs<br/>Mendeley] --> B[IoTKITs Kaggle split<br/>train / valid / test]
+    B -->|re-split<br/>2,491 / 318 / 298| C[Assignment A<br/>detector selection]
+    B -->|train → SSL pool<br/>621 keep labels| D[Assignment B<br/>SSL pretraining<br/>+ fine-tuning]
+    C -->|YOLOv12s| D
+    B -->|valid + test images| E[IoTKITs Detection Video]
     E --> F[Tracking]
+    D -->|best detector| F
 ```
 
 ### 1.1 IoTKITs (original dataset)
