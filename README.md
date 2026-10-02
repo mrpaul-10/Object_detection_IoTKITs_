@@ -1,6 +1,7 @@
 <div align="center">
 
-# Self-Supervised Pretraining for Label-Efficient IoT Board Detection and Tracking
+# IoTKITs Object Detection and Tracking 
+**Self-supervised pretraining for label-efficient detection of IoT development boards**
 
 **CSE445 Computer Vision**
 
