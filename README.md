@@ -94,8 +94,8 @@ One public dataset was used, and **two new datasets were created** from it.
 ```mermaid
 %%{init: {"flowchart": {"useMaxWidth": false}}}%%
 flowchart LR
-    A[IoTKITs<br/>Mendeley] --> re-split<br/>2,491 / 318 / 298| CB[IoTKITs Kaggle split<br/>train / valid / test]
-    B -->|[Assignment A<br/>detector selection]
+    A[IoTKITs<br/>Mendeley] -->|re-split<br/>2,485 / 311 / 311| B[IoTKITs Kaggle split<br/>train / valid / test]
+    B -->|full labels| C[Assignment A<br/>detector selection]
     B -->|train → SSL pool<br/>621 keep labels| D[Assignment B<br/>SSL pretraining<br/>+ fine-tuning]
     C -->|YOLOv12s| D
     B -->|valid + test images| E[IoTKITs Detection Video]
