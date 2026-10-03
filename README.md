@@ -465,6 +465,3 @@ License), DINOv3 (Meta DINOv3 License) and the IoTKITs dataset (terms on Mendele
 5. Y. Tian, Q. Ye, D. Doermann. *YOLOv12: Attention-Centric Real-Time Object Detectors.* 2025.
 6. Y. Zhang et al. *ByteTrack: Multi-Object Tracking by Associating Every Detection Box.* ECCV, 2022.
 7. IoTKITs dataset, Mendeley Data, [doi:10.17632/x5thzmkxhy.1](https://data.mendeley.com/datasets/x5thzmkxhy/1).
-
-The workflow follows the structure of the course instructor's
-[SSL Detection Lab](https://github.com/rifat963/ssl-detection-lab).
