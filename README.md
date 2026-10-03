@@ -200,11 +200,11 @@ All experiments were run on Kaggle (NVIDIA T4). Exported copies are in
 
 | # | Notebook | Description | Kaggle |
 |---|---|---|---|
-| 1 | EDA and split | Dataset statistics, class distribution, YOLO conversion and train/val/test split — publishes [dataset 2](https://www.kaggle.com/datasets/Mrpaul0007/iotkits) | [Open](https://www.kaggle.com/mrpaul0007/code) |
-| 2 | YOLOv10s | Training, evaluation, per-example error analysis | [Open](https://www.kaggle.com/code/mrpaul0007/nb-2-yolov10) |
-| 3 | YOLOv12s | Training, evaluation, per-example error analysis | [Open](https://www.kaggle.com/code/mrpaul0007/nb-3-yolov12) |
-| 4 | YOLOv26s | Training, evaluation, per-example error analysis | [Open](https://www.kaggle.com/code/mrpaul0007/nb-4-yolov26) |
-| 5 | RF-DETR-Nano | Training, evaluation, error analysis, final comparison | [Open](https://www.kaggle.com/code/mrpaul0007/nb-5-rf-detr) |
+| 1 | EDA and split | Dataset statistics, class distribution, YOLO conversion and train/val/test split — publishes [dataset 2](https://www.kaggle.com/datasets/Mrpaul0007/iotkits) | [Open](https://www.kaggle.com/code/Mrpaul0007/nb-1-dataset-preprocessing) |
+| 2 | YOLOv10s | Training, evaluation, per-example error analysis | [Open](https://www.kaggle.com/code/Mrpaul0007/nb-2-yolov10) |
+| 3 | YOLOv12s | Training, evaluation, per-example error analysis | [Open](https://www.kaggle.com/code/Mrpaul0007/nb-3-yolov12) |
+| 4 | YOLOv26s | Training, evaluation, per-example error analysis | [Open](https://www.kaggle.com/code/Mrpaul0007/nb-4-yolov26) |
+| 5 | RF-DETR-Nano | Training, evaluation, error analysis, final comparison | [Open](https://www.kaggle.com/code/Mrpaul0007/nb-5-rf-detr) |
 
 ### Assignment B
 
