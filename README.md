@@ -211,7 +211,7 @@ All experiments were run on Kaggle (NVIDIA T4). Exported copies are in
 | # | Notebook | Description | Inputs | Kaggle |
 |---|---|---|---|---|
 | 0a | Partition | Re-partitions dataset 2: train → SSL pool, 20% keeps labels | Dataset 2 | [Open](https://www.kaggle.com/code/Mrpaul0007/self-supervised-learning-nb-0-partition) |
-| 0b | Baselines | Random and COCO-pretrained YOLOv12s | 0a | [Open](https://www.kaggle.com/code/Mrpaul0007/self-supervised-learning-nb-0-baseline) |
+| 0b | Baselines | Random and COCO-pretrained YOLOv12s | Dataset 2, 0a, YOLOv12s | [Open](https://www.kaggle.com/code/Mrpaul0007/self-supervised-learning-nb-0-baseline) |
 | 1a | SimCLR pretraining | Contrastive pretraining of the YOLOv12s backbone | 0a | [Open](https://www.kaggle.com/code/Mrpaul0007/self-supervised-learning-nb-1-simclr-pretrain) |
 | 1b | SimCLR detection | Backbone transfer, fine-tuning, evaluation | 0a, 0b, 1a | [Open](https://www.kaggle.com/code/Mrpaul0007/self-supervised-learning-nb-1-simclr-detect) |
 | 2a | BYOL pretraining | Online/target self-distillation | 0a | [Open](https://www.kaggle.com/code/Mrpaul0007/self-supervised-learning-nb-2-byol-pretrain) |
